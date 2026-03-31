@@ -3,241 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upcoming Events</title>
+  <title>Events</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
+    
     body {
       font-family: 'Roboto', sans-serif;
       background: #f8fbff;
       color: #003366;
       margin: 0;
-      padding: 10px;
-      max-width: 300px;
+      padding: 6px;
+      max-width: 260px;
+      font-size: 13px;
     }
-
+    
     .event-card {
       background: white;
       border: 2px solid #cce6ff;
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.06);
+      border-radius: 8px;
+      padding: 9px 11px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 5px rgba(0,102,204,0.05);
     }
-
-    .event-card:hover {
-      border-color: #00aaff;
-      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.12);
-    }
-
+    
     .event-name {
       font-weight: 700;
-      color: #003366;
-      font-size: 1.02em;
-      margin-bottom: 6px;
-      line-height: 1.2;
+      font-size: 0.95em;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
     }
-
+    
     .event-time {
+      font-size: 0.78em;
       color: #0066cc;
-      font-size: 0.88em;
-      margin-bottom: 7px;
+      margin-bottom: 5px;
     }
-
+    
     .countdown {
-      font-family: 'Roboto', sans-serif;
-      font-size: 1.02em;
       font-weight: 700;
-      color: #003366;
+      font-size: 0.9em;
       background: #e6f0ff;
-      padding: 6px 10px;
-      border-radius: 6px;
+      color: #003366;
+      padding: 4px 7px;
+      border-radius: 5px;
       text-align: center;
-      margin: 8px 0;
+      margin: 6px 0;
       border: 1px solid #99ccff;
-      letter-spacing: 0.5px;
     }
-
+    
     .live {
       color: #006600;
       background: #e6ffe6;
       border-color: #00aa00;
       animation: pulse 1.8s infinite;
     }
-
+    
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(0, 170, 0, 0.5); }
-      70% { box-shadow: 0 0 0 8px rgba(0, 170, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(0, 170, 0, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(0,170,0,0.5); }
+      70% { box-shadow: 0 0 0 5px rgba(0,170,0,0); }
+      100% { box-shadow: 0 0 0 0 rgba(0,170,0,0); }
     }
-
+    
     .event-opponent {
-      font-size: 0.85em;
+      font-size: 0.76em;
       color: #336699;
-      margin-bottom: 8px;
+      margin: 4px 0;
     }
-
+    
     .event-link {
       color: #0066cc;
       text-decoration: none;
+      font-size: 0.82em;
       font-weight: 500;
-      font-size: 0.9em;
       display: block;
       text-align: center;
-      padding: 5px 0;
-    }
-
-    .event-link:hover {
-      color: #003366;
-      background: #f0f5ff;
+      padding: 3px 0;
       border-radius: 4px;
     }
-
+    
+    .event-link:hover {
+      background: #f0f5ff;
+    }
+    
     .no-events {
       text-align: center;
       color: #557799;
       font-style: italic;
-      padding: 20px 10px;
+      padding: 12px;
       background: #f0f7ff;
-      border-radius: 8px;
-      font-size: 0.92em;
+      border-radius: 7px;
+      font-size: 0.85em;
     }
   </style>
 </head>
 <body>
-
-  <div id="events-container">
-    <!-- Events will be injected here -->
-  </div>
+  <div id="events-container"></div>
 
   <script>
-    const CLUB_ID = "alien-chess-hub";   // ← Change only if your club URL slug is different
+    const CLUB_ID = "alien-chess-hub";
 
     function getEventEmoji(name) {
       const n = (name || "").toLowerCase();
-      
-      // Specific checks first
       if (n.includes("vote") || n.includes("voting")) return "🗳️";
-      if (n.includes("multi") || n.includes("arena") || n.includes("multi-club")) return "⚔️";
-      
-      // Everything else in your club is daily → default to sun
+      if (n.includes("multi") || n.includes("arena")) return "⚔️";
       return "☀️";
     }
 
     function formatCountdown(diffMs) {
-      if (diffMs <= 0) return '<span class="live">🚀 EVENT IS LIVE!</span>';
+      if (diffMs <= 0) return '<span class="live">🚀 LIVE!</span>';
+      
+      const d = Math.floor(diffMs / 86400000);
+      const h = Math.floor((diffMs % 86400000) / 3600000);
+      const m = Math.floor((diffMs % 3600000) / 60000);
+      const s = Math.floor((diffMs % 60000) / 1000);
 
-      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-      let str = '';
-      if (days > 0) str += `${days}d `;
-      str += `${hours.toString().padStart(2, '0')}h `;
-      str += `${minutes.toString().padStart(2, '0')}m `;
-      str += `${seconds.toString().padStart(2, '0')}s`;
-
+      let str = d > 0 ? `${d}d ` : '';
+      str += `${h.toString().padStart(2,'0')}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s`;
       return str.trim();
     }
 
     function updateCountdowns() {
       const now = Date.now();
       document.querySelectorAll('.countdown').forEach(el => {
-        const startTime = parseInt(el.dataset.startTime);
-        if (!startTime) return;
-        const diff = startTime - now;
-        el.innerHTML = formatCountdown(diff);
+        const start = parseInt(el.dataset.startTime);
+        if (start) el.innerHTML = formatCountdown(start - now);
       });
     }
 
     async function fetchUpcomingEvents() {
       const container = document.getElementById('events-container');
-      container.innerHTML = '<p style="text-align:center;color:#6688bb;font-size:0.9em;">Loading events...</p>';
+      container.innerHTML = '<p style="text-align:center;color:#6688bb;font-size:0.8em;">Loading...</p>';
 
       try {
-        const response = await fetch(`https://api.chess.com/pub/club/${CLUB_ID}/matches`);
+        const res = await fetch(`https://api.chess.com/pub/club/${CLUB_ID}/matches`);
+        if (!res.ok) throw new Error();
         
-        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        let upcoming = (data.registered || []).map(m => ({
+          name: m.name || "Club Match",
+          start_time: m.start_time ? new Date(m.start_time * 1000) : null,
+          url: m.url || `https://www.chess.com/club/${CLUB_ID}`,
+          opponent: m.opponent ? m.opponent.name : null
+        })).filter(e => e.start_time)
+         .sort((a,b) => a.start_time - b.start_time)
+         .slice(0, 3);
 
-        const data = await response.json();
-
-        let upcoming = [];
-
-        if (data.registered && Array.isArray(data.registered)) {
-          upcoming = data.registered.map(match => ({
-            name: match.name || "Daily Club Match",
-            start_time: match.start_time ? new Date(match.start_time * 1000) : null,
-            url: match.url || `https://www.chess.com/club/${CLUB_ID}`,
-            opponent: match.opponent ? match.opponent.name : null
-          }));
-        }
-
-        upcoming.sort((a, b) => {
-          if (!a.start_time) return 1;
-          if (!b.start_time) return -1;
-          return a.start_time - b.start_time;
-        });
-
-        const next3 = upcoming.slice(0, 3);
-
-        if (next3.length === 0) {
-          container.innerHTML = `
-            <div class="no-events">
-              No upcoming events right now.<br>
-              Check back soon!
-            </div>`;
+        if (upcoming.length === 0) {
+          container.innerHTML = `<div class="no-events">No upcoming events</div>`;
           return;
         }
 
         let html = '';
-        next3.forEach(event => {
-          if (!event.start_time) return;
-
+        upcoming.forEach(event => {
           const emoji = getEventEmoji(event.name);
-          const timeStr = event.start_time.toLocaleString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric', 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
+          const timeStr = event.start_time.toLocaleString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric',
+            hour: 'numeric', minute: '2-digit', hour12: true
           });
 
           html += `
             <div class="event-card">
               <div class="event-name">${emoji} ${event.name}</div>
               <div class="event-time">🕒 ${timeStr}</div>
-              <div class="countdown" data-start-time="${event.start_time.getTime()}">
-                Loading...
-              </div>
+              <div class="countdown" data-start-time="${event.start_time.getTime()}">...</div>
               ${event.opponent ? `<div class="event-opponent">vs ${event.opponent}</div>` : ''}
-              <a href="${event.url}" target="_blank" class="event-link">
-                → Join Event
-              </a>
+              <a href="${event.url}" target="_blank" class="event-link">→ Join</a>
             </div>`;
         });
 
         container.innerHTML = html;
         updateCountdowns();
-
-      } catch (err) {
-        container.innerHTML = `
-          <div class="no-events">
-            Unable to load events.<br>
-            Please try again later.
-          </div>`;
+      } catch (e) {
+        container.innerHTML = `<div class="no-events">Failed to load</div>`;
       }
     }
 
-    // Load + auto refresh
     fetchUpcomingEvents();
-    setInterval(fetchUpcomingEvents, 30 * 60 * 1000);
+    setInterval(fetchUpcomingEvents, 1800000); // 30 minutes
     setInterval(updateCountdowns, 1000);
   </script>
 </body>
-</html>
+</html></html>
